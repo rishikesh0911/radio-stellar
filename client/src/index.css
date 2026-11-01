@@ -109,3 +109,13 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+.globe-tooltip {
+  background: #14231b;
+  color: white;
+  border: 1px solid #20e889;
+  padding: 8px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-size: 12px;
+}
