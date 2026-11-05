@@ -1,86 +1,55 @@
+
 const axios = require("axios");
 
-const RADIO_API =
-  process.env.RADIO_BROWSER_URL ||
-  "https://de1.api.radio-browser.info";
+const RADIO_BROWSER_SERVERS = [
+  "https://all.api.radio-browser.info",
+  "https://de1.api.radio-browser.info",
+  "https://nl1.api.radio-browser.info",
+];
 
-const radioClient = axios.create({
-  baseURL: RADIO_API,
-  timeout: 12000,
+const api = axios.create({
+  timeout: 15000,
   headers: {
-    "User-Agent": "RadioGardenClone/1.0"
-  }
+    "User-Agent": "RadioStellar/1.0",
+    Accept: "application/json",
+  },
 });
 
-// Search stations
-const searchStations = async (filters = {}) => {
-  const params = {
-    limit: Math.min(Number(filters.limit) || 50, 100),
-    offset: Math.max(Number(filters.offset) || 0, 0),
-    hidebroken: true,
-    order: "clickcount",
-    reverse: true
-  };
+const delay = (ms) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
-  if (filters.name) params.name = filters.name;
-  if (filters.country) params.country = filters.country;
-  if (filters.language) params.language = filters.language;
-  if (filters.tag) params.tag = filters.tag;
+async function radioRequest(endpoint) {
+  let lastError;
 
-  const { data } = await radioClient.get(
-    "/json/stations/search",
-    { params }
-  );
+  for (const [index, server] of RADIO_BROWSER_SERVERS.entries()) {
+    try {
+      const response = await api.get(`${server}${endpoint}`);
 
-  return data;
-};
+      console.log(`Radio Browser connected: ${server}`);
 
-// Get popular stations
-const getPopularStations = async (limit = 20) => {
-  const { data } = await radioClient.get(
-    `/json/stations/topclick/${Math.min(limit, 100)}`
-  );
+      return response.data;
+    } catch (error) {
+      lastError = error;
 
-  return data;
-};
+      console.error(
+        `Radio Browser server failed: ${server}`,
+        error.code || error.message
+      );
 
-// Get countries
-const getCountries = async () => {
-  const { data } = await radioClient.get(
-    "/json/countries",
-    {
-      params: { order: "stationcount", reverse: true }
+      if (index < RADIO_BROWSER_SERVERS.length - 1) {
+        await delay(500);
+      }
     }
-  );
+  }
 
-  return data;
-};
+  throw lastError;
+}
 
-// Get languages
-const getLanguages = async () => {
-  const { data } = await radioClient.get(
-    "/json/languages",
-    {
-      params: { order: "stationcount", reverse: true }
-    }
-  );
-
-  return data;
-};
-
-// Get station by UUID
-const getStationById = async (uuid) => {
-  const { data } = await radioClient.get(
-    `/json/stations/byuuid/${encodeURIComponent(uuid)}`
-  );
-
-  return data[0] || null;
-};
+async function getPopularStations() {
+  return radioRequest("/json/stations/topclick/20");
+}
 
 module.exports = {
-  searchStations,
   getPopularStations,
-  getCountries,
-  getLanguages,
-  getStationById
+  radioRequest,
 };

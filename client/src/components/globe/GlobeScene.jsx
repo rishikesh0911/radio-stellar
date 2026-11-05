@@ -1,17 +1,18 @@
+import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-
 import {
   OrbitControls,
+  Preload,
   Stars,
-  Preload
 } from "@react-three/drei";
 
 import Earth from "./Earth";
 import StationMarker from "./StationMarker";
 
 export default function GlobeScene({
-  stations,
-  onSelectStation
+  stations = [],
+  onSelectStation,
+  selectedId,
 }) {
   const validStations = stations.filter((station) => {
     const lat = Number(station.geo_lat);
@@ -31,45 +32,50 @@ export default function GlobeScene({
     <Canvas
       camera={{
         position: [0, 0, 6],
-        fov: 45
+        fov: 45,
       }}
+      dpr={[1, 1.75]}
     >
-      <color attach="background" args={["#03070c"]} />
+      <color attach="background" args={["#050b12"]} />
 
-      <ambientLight intensity={1.2} />
+      <ambientLight intensity={1.25} />
 
       <directionalLight
         position={[5, 3, 5]}
-        intensity={2}
+        intensity={2.1}
       />
 
-      <Stars
-        radius={100}
-        depth={50}
-        count={3000}
-        factor={4}
-        fade
-      />
-
-      <Earth />
-
-      {validStations.map((station) => (
-        <StationMarker
-          key={station.stationuuid}
-          station={station}
-          onSelect={onSelectStation}
+      <Suspense fallback={null}>
+        <Stars
+          radius={90}
+          depth={45}
+          count={2200}
+          factor={3.5}
+          fade
         />
-      ))}
+
+        <Earth />
+
+        {validStations.map((station) => (
+          <StationMarker
+            key={station.stationuuid}
+            station={station}
+            selected={station.stationuuid === selectedId}
+            onSelect={onSelectStation}
+          />
+        ))}
+
+        <Preload all />
+      </Suspense>
 
       <OrbitControls
         enablePan={false}
-        minDistance={2.5}
-        maxDistance={9}
+        minDistance={2.6}
+        maxDistance={8}
         enableDamping
-        dampingFactor={0.05}
+        dampingFactor={0.06}
+        rotateSpeed={0.55}
       />
-
-      <Preload all />
     </Canvas>
   );
 }

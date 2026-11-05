@@ -7,12 +7,12 @@ export default function Earth() {
 
   const texture = useLoader(
     TextureLoader,
-    "/textures/earth.jpg"
+    "/textures/8k_earth_nightmap.jpg"
   );
 
   return (
     <mesh ref={earthRef}>
-      <sphereGeometry args={[2, 64, 64]} />
+      <sphereGeometry args={[2, 96, 96]} />
 
       <meshStandardMaterial
         map={texture}

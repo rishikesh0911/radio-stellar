@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Html } from "@react-three/drei";
+
 import { latLongToVector3 } from "./globeUtils";
 
 export default function StationMarker({
   station,
-  onSelect
+  onSelect,
+  selected = false,
 }) {
   const [hovered, setHovered] = useState(false);
 
@@ -13,6 +15,8 @@ export default function StationMarker({
     Number(station.geo_long),
     2.025
   );
+
+  const highlighted = hovered || selected;
 
   return (
     <group position={position}>
@@ -31,14 +35,21 @@ export default function StationMarker({
           document.body.style.cursor = "auto";
         }}
       >
-        <sphereGeometry args={[0.035, 16, 16]} />
+        <sphereGeometry
+          args={[
+            highlighted ? 0.052 : 0.026,
+            16,
+            16,
+          ]}
+        />
+
         <meshBasicMaterial
-          color={hovered ? "#ffffff" : "#20e889"}
+          color={highlighted ? "#ffffff" : "#39f5ad"}
         />
       </mesh>
 
-      {hovered && (
-        <Html distanceFactor={8}>
+      {highlighted && (
+        <Html distanceFactor={8} center>
           <div className="globe-tooltip">
             {station.name}
           </div>
